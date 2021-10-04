@@ -55,6 +55,15 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/resources/tarotimages</directory>
+                <includes>
+                    <include>**/*.jpg</include>
+                </includes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
