@@ -1,4 +1,4 @@
-# webhookTelegramBot
+# Taro Card of the Day in your Telegram
 
 ## Set Webhook URL for the bot
 
