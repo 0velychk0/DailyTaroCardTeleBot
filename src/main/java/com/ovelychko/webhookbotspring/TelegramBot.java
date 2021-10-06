@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -24,6 +25,7 @@ public class TelegramBot extends TelegramWebhookBot {
     private final TelegramBotConfig telegramBotConfig;
     private final String CARD_FILE = "tarotcards.properties";
     private final String IMAGE_FILE = "tarotimages/testCard.jpg";
+    private final String IMAGE_FILE_URL = "https://raw.githubusercontent.com/0velychk0/DailyTaroCardTeleBot/main/src/main/resources/tarotimages/boxrus.jpg";
     private final int CARDS_COUNT = 78;
     private final String ENDL = "\n";
 
@@ -83,13 +85,10 @@ public class TelegramBot extends TelegramWebhookBot {
             logger.info(joiner.toString());
 
             try {
-                ClassLoader classLoader = getClass().getClassLoader();
-                URL url = classLoader.getResource(IMAGE_FILE);
-
                 SendPhoto message = new SendPhoto();
                 message.setChatId(update.getMessage().getChatId().toString());
-                message.setCaption("Caption Photo");
-                message.setPhoto(new InputFile(url.openStream(), "File Name Photo"));
+                message.setCaption(joiner.toString());
+                message.setPhoto(new InputFile(new File(IMAGE_FILE_URL)));
                 this.execute(message);
             } catch (Exception ex) {
                 logger.info(ex.getMessage());
