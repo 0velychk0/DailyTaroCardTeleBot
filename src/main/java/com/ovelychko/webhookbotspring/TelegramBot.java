@@ -24,10 +24,12 @@ public class TelegramBot extends TelegramWebhookBot {
     private static final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
     private final TelegramBotConfig telegramBotConfig;
     private final String CARD_FILE = "tarotcards.properties";
+    private final String DEBUG_GET_NUM = "debug";
     private final String IMAGE_FILE = "tarotimages/testCard.jpg";
     private final String IMAGE_FILE_URL = "https://raw.githubusercontent.com/0velychk0/DailyTaroCardTeleBot/main/src/main/resources/tarotimages/boxrus.jpg";
     private final int CARDS_COUNT = 78;
     private final String ENDL = "\n";
+    private Random random = new Random();
 
     public TelegramBot(TelegramBotConfig telegramBotConfig) {
         logger.info("TelegramBot created, telegramBotConfig = {}", telegramBotConfig);
@@ -56,6 +58,20 @@ public class TelegramBot extends TelegramWebhookBot {
                     update.getMessage().getText());
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(update.getMessage().getChatId().toString());
+
+            int cardNum = -1;
+            boolean debugValue = false;
+            if (update.getMessage().getText().startsWith(DEBUG_GET_NUM)) {
+                try {
+                    cardNum = Integer.parseInt(update.getMessage().getText().substring(DEBUG_GET_NUM.length()).trim());
+                    debugValue = true;
+                } catch (NumberFormatException ex) {
+                }
+            }
+            if (cardNum < 1 || cardNum > CARDS_COUNT) {
+                cardNum = random.nextInt(CARDS_COUNT) + 1;
+            }
+
             try {
                 ClassLoader classLoader = getClass().getClassLoader();
                 InputStream inputStream = classLoader.getResourceAsStream(CARD_FILE);
@@ -72,25 +88,25 @@ public class TelegramBot extends TelegramWebhookBot {
                 property.load(reader);
                 joiner.add(property.getProperty("greeting"));
                 joiner.add(property.getProperty("random_card"));
-                Random random = new Random();
-                int num = random.nextInt(CARDS_COUNT + 1) + 1;
-                String cardOfTheDay = property.getProperty("card_" + num);
+                String cardOfTheDay = property.getProperty("card_" + cardNum);
                 joiner.add(cardOfTheDay);
-                joiner.add("debug value: " + num);
+                if (debugValue)
+                    joiner.add("debug value: " + cardNum);
             } catch (Exception ex) {
                 joiner.add("Exception: " + ex.getMessage());
                 logger.info("Exception: {}", ex.getMessage());
             }
-            sendMessage.setText(joiner.toString());
+
             logger.info(joiner.toString());
 
             try {
                 SendPhoto message = new SendPhoto();
                 message.setChatId(update.getMessage().getChatId().toString());
                 message.setCaption(joiner.toString());
-                message.setPhoto(new InputFile(new File(IMAGE_FILE_URL)));
+                message.setPhoto(new InputFile(IMAGE_FILE_URL));
                 this.execute(message);
             } catch (Exception ex) {
+                sendMessage.setText(joiner.toString());
                 logger.info(ex.getMessage());
             }
             return sendMessage;
