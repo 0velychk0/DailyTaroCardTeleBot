@@ -18,4 +18,6 @@ public class TelegramBotConfig {
     String userName;
     @Value("${telegrambot.botToken}")
     String botToken;
+    @Value("${telegrambot.imageSecurePictorialLink}")
+    String imageSecurePictorialLink;
 }
