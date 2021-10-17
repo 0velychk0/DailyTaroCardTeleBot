@@ -13,19 +13,19 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.WebhookBot;
 
 @RestController
-public class WebhookController {
-    private static final Logger logger = LoggerFactory.getLogger(WebhookController.class);
+public class WebhookTelegramController {
+    private static final Logger logger = LoggerFactory.getLogger(WebhookTelegramController.class);
     private final WebhookBot telegramBot;
 
     @Autowired
-    public WebhookController(TelegramBotConfig telegramBotConfig) {
-        logger.info("WebhookController created, telegramBotConfig = {}", telegramBotConfig);
+    public WebhookTelegramController(TelegramBotConfig telegramBotConfig) {
+        logger.info("WebhookTelegramController created, telegramBotConfig = {}", telegramBotConfig);
         this.telegramBot = new TelegramBot(telegramBotConfig);
     }
 
-    @PostMapping("/")
+    @PostMapping("/telebot")
     public BotApiMethod<?> onUpdateReceived(@RequestBody Update update) {
-        logger.info("WebhookController.onUpdateReceived called");
+        logger.info("WebhookTelegramController.onUpdateReceived called");
         return telegramBot.onWebhookUpdateReceived(update);
     }
 

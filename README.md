@@ -17,20 +17,21 @@
     https://javarush.ru/groups/posts/3493-telegram-bot--napominalka-cherez-webhook-na-java-ili-skazhi-net-google-kalendarju
 
 ## How to deploy via google apps engine console
+
 - Open console and run command to get your url
 
-    gcloud app browse
+  gcloud app browse
 
 - Put this URL to application.properties as telegrambot.webHookPath
 
 - Set this url as Webhook URL
 
-    https://api.telegram.org/bot<token>/setWebhook?url=https://telegrambotovelychko.appspot.com
+  https://api.telegram.org/bot<token>/setWebhook?url=https://telegrambotovelychko.appspot.com
 
 - Open console and run next commands to deploy
 
-    git clone https://github.com/0velychk0/webhookTelegramBot.git
+  git clone https://github.com/0velychk0/webhookTelegramBot.git
 
-    cd webhookTelegramBot
+  cd webhookTelegramBot
 
-    mvn -DskipTests package appengine:deploy
+  mvn -DskipTests package appengine:deploy
