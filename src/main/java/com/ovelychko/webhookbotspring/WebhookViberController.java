@@ -15,8 +15,7 @@ import com.viber.bot.message.PictureMessage;
 import com.viber.bot.message.TextMessage;
 import com.viber.bot.profile.BotProfile;
 import com.viber.bot.profile.UserProfile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -39,8 +38,8 @@ import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 
 @RestController
+@Slf4j
 public class WebhookViberController implements ApplicationListener<ApplicationReadyEvent> {
-    private static final Logger logger = LoggerFactory.getLogger(WebhookViberController.class);
     private final String DEBUG_GET_NUM = "debug";
     private final int CARDS_COUNT = 78;
     private final String ENDL = "\n";
@@ -69,7 +68,7 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
             public void messageReceived(IncomingMessageEvent event, Message message, Response response) {
                 UserProfile userProfile = event.getSender();
                 StringJoiner joiner = new StringJoiner(ENDL);
-                logger.info("onUpdateReceived from user {} the text message: {}",
+                log.info("onUpdateReceived from user {} the text message: {}",
                         userProfile.getName(),
                         message.toString());
 
@@ -81,14 +80,14 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
 //                        cardNum = Integer.parseInt(update.getMessage().getText().substring(DEBUG_GET_NUM.length()).trim());
 //                        debugValue = true;
 //                    } catch (Exception ex) {
-//                        logger.info("Exception: {}", ex.getMessage());
+//                        log.info("Exception: {}", ex.getMessage());
 //                    }
 //                }
                 if (cardNum < 0 || cardNum >= CARDS_COUNT) {
                     cardNum = random.nextInt(CARDS_COUNT);
                 }
 
-                logger.info("user {} cardNum: {}", userProfile.getName(), cardNum);
+                log.info("user {} cardNum: {}", userProfile.getName(), cardNum);
 
                 joiner.add(TarotController.getCardDescription(cardNum, debugValue));
 
@@ -97,7 +96,7 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
                     response.send(imageMessage);
                 } catch (Exception ex) {
                     response.send(joiner.toString());
-                    logger.info(ex.getMessage());
+                    log.info(ex.getMessage());
                 }
             }
         }));

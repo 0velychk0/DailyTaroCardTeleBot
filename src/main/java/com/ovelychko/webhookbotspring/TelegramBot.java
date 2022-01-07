@@ -1,5 +1,6 @@
 package com.ovelychko.webhookbotspring;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,8 @@ import java.util.Random;
 import java.util.StringJoiner;
 
 @Configuration
+@Slf4j
 public class TelegramBot extends TelegramWebhookBot {
-    private static final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
     private final TelegramBotConfig telegramBotConfig;
     private final String DEBUG_GET_NUM = "debug";
     private final int CARDS_COUNT = 78;
@@ -25,7 +26,7 @@ public class TelegramBot extends TelegramWebhookBot {
 
     @Autowired
     public TelegramBot(TelegramBotConfig telegramBotConfig) {
-        logger.info("TelegramBot created, telegramBotConfig = {}", telegramBotConfig);
+        log.info("TelegramBot created, telegramBotConfig = {}", telegramBotConfig);
         this.telegramBotConfig = telegramBotConfig;
     }
 
@@ -42,11 +43,11 @@ public class TelegramBot extends TelegramWebhookBot {
     }
 
     public BotApiMethod onWebhookUpdateReceived(Update update) {
-        logger.info("onUpdateReceived");
+        log.info("onUpdateReceived");
 
         StringJoiner joiner = new StringJoiner(ENDL);
         if (update.hasMessage() && update.getMessage().hasText()) {
-            logger.info("onUpdateReceived from user {} the text message: {}",
+            log.info("onUpdateReceived from user {} the text message: {}",
                     update.getMessage().getFrom().getFirstName(),
                     update.getMessage().getText());
             SendMessage sendMessage = new SendMessage();
@@ -59,14 +60,14 @@ public class TelegramBot extends TelegramWebhookBot {
                     cardNum = Integer.parseInt(update.getMessage().getText().substring(DEBUG_GET_NUM.length()).trim());
                     debugValue = true;
                 } catch (Exception ex) {
-                    logger.info("Exception: {}", ex.getMessage());
+                    log.info("Exception: {}", ex.getMessage());
                 }
             }
             if (cardNum < 0 || cardNum >= CARDS_COUNT) {
                 cardNum = random.nextInt(CARDS_COUNT);
             }
 
-            logger.info("user {} cardNum: {}", update.getMessage().getFrom(), cardNum);
+            log.info("user {} cardNum: {}", update.getMessage().getFrom(), cardNum);
 
             joiner.add(TarotController.getCardDescription(cardNum, debugValue));
 
@@ -78,7 +79,7 @@ public class TelegramBot extends TelegramWebhookBot {
                 this.execute(message);
             } catch (Exception ex) {
                 sendMessage.setText(joiner.toString());
-                logger.info(ex.getMessage());
+                log.info(ex.getMessage());
             }
             return sendMessage;
         }

@@ -1,18 +1,17 @@
 package com.ovelychko.webhookbotspring;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringJoiner;
 
+@Slf4j
 public class TarotController {
-    private static final Logger logger = LoggerFactory.getLogger(TarotController.class);
-
     private static final String CARD_FILE = "tarotcards.properties";
     private static final String DEBUG_GET_NUM = "debug";
     private static final int CARDS_COUNT = 78;
@@ -29,11 +28,11 @@ public class TarotController {
         try {
             ClassLoader classLoader = TarotController.class.getClassLoader();
             InputStream inputStream = classLoader.getResourceAsStream(CARD_FILE);
-            Reader reader = new InputStreamReader(inputStream, "UTF-8");
+            Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
 
             if (inputStream == null) {
                 joiner.add("Sorry, unable to find " + CARD_FILE);
-                logger.info("Sorry, unable to find " + CARD_FILE);
+                log.info("Sorry, unable to find " + CARD_FILE);
                 return joiner.toString();
             }
 
@@ -50,7 +49,7 @@ public class TarotController {
             joiner.add(cardOfTheDay);
         } catch (Exception ex) {
             joiner.add("Exception: " + ex.getMessage());
-            logger.info("Exception: {}", ex.getMessage());
+            log.info("Exception: {}", ex.getMessage());
         }
         return joiner.toString();
     }
