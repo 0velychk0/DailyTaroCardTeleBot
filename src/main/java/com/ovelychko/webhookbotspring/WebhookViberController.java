@@ -18,7 +18,6 @@ import com.viber.bot.profile.UserProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +39,6 @@ import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@SpringBootApplication
 public class WebhookViberController implements ApplicationListener<ApplicationReadyEvent> {
     private static final Logger logger = LoggerFactory.getLogger(WebhookViberController.class);
     private final String DEBUG_GET_NUM = "debug";
@@ -62,16 +60,10 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent appReadyEvent) {
-        try {
-            bot.setWebhook(webhookUrl).get();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        bot.onConversationStarted(event -> Futures.immediateFuture(Optional.of( // send 'Hi UserName' when conversation is started
+        bot.onConversationStarted(event -> Futures.immediateFuture(Optional.of(
                 new TextMessage("Hi " + event.getUser().getName()))));
 
-        // bot.onMessageReceived((event, message, response) -> response.send(message)); // echos everything back
         bot.onMessageReceived((new OnMessageReceived() {
             @Override
             public void messageReceived(IncomingMessageEvent event, Message message, Response response) {
