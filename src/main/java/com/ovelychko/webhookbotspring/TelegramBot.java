@@ -56,6 +56,9 @@ public class TelegramBot extends TelegramWebhookBot {
             int cardNum = -1;
             boolean debugValue = false;
             if (update.getMessage().getText().startsWith(DEBUG_GET_NUM)) {
+
+                joiner.add("Request: " + update.getMessage().getText());
+
                 try {
                     cardNum = Integer.parseInt(update.getMessage().getText().substring(DEBUG_GET_NUM.length()).trim());
                     debugValue = true;

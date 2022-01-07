@@ -72,6 +72,12 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
                         userProfile.getName(),
                         message.toString());
 
+                if (message instanceof TextMessage) {
+                    TextMessage textMessage = (TextMessage) message;
+                    joiner.add("Request: " + textMessage.getText());
+                } else {
+                    return;
+                }
 
                 int cardNum = -1;
                 boolean debugValue = false;
