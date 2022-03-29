@@ -39,12 +39,7 @@ import java.util.concurrent.ExecutionException;
 
 @RestController
 @Slf4j
-public class WebhookViberController implements ApplicationListener<ApplicationReadyEvent> {
-    private final String DEBUG_GET_NUM = "debug";
-    private final int CARDS_COUNT = 78;
-    private final String ENDL = "\n";
-    private final Random random = new Random();
-
+public class WebhookViberController implements ApplicationListener<ApplicationReadyEvent>, BotController {
     @Inject
     private ViberBot bot;
 
@@ -63,47 +58,44 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
         bot.onConversationStarted(event -> Futures.immediateFuture(Optional.of(
                 new TextMessage("Hi " + event.getUser().getName()))));
 
-        bot.onMessageReceived((new OnMessageReceived() {
-            @Override
-            public void messageReceived(IncomingMessageEvent event, Message message, Response response) {
-                UserProfile userProfile = event.getSender();
-                StringJoiner joiner = new StringJoiner(ENDL);
-                log.info("onUpdateReceived from user {} the text message: {}",
-                        userProfile.getName(),
-                        message.toString());
+        bot.onMessageReceived(((event, message, response) -> {
+            UserProfile userProfile = event.getSender();
+            StringJoiner joiner = new StringJoiner(ENDL);
+            log.info("onUpdateReceived from user '{}' the text message: '{}'",
+                    userProfile.getName(), message.toString());
 
-                if (message instanceof TextMessage) {
-                    TextMessage textMessage = (TextMessage) message;
-                    joiner.add("Request: " + textMessage.getText());
-                } else {
-                    return;
-                }
+            if (!(message instanceof TextMessage)) {
+                log.info("text message supported only");
+                return;
+            }
 
-                int cardNum = -1;
-                boolean debugValue = false;
-//                if (update.getMessage().getText().startsWith(DEBUG_GET_NUM)) {
-//                    try {
-//                        cardNum = Integer.parseInt(update.getMessage().getText().substring(DEBUG_GET_NUM.length()).trim());
-//                        debugValue = true;
-//                    } catch (Exception ex) {
-//                        log.info("Exception: {}", ex.getMessage());
-//                    }
-//                }
-                if (cardNum < 0 || cardNum >= CARDS_COUNT) {
-                    cardNum = random.nextInt(CARDS_COUNT);
-                }
+            TextMessage textMessage = (TextMessage) message;
+            joiner.add("Request: " + textMessage.getText());
 
-                log.info("user {} cardNum: {}", userProfile.getName(), cardNum);
-
-                joiner.add(TarotController.getCardDescription(cardNum, debugValue));
-
+            int cardNum = -1;
+            boolean debugValue = false;
+            if (textMessage.getText().startsWith(DEBUG_GET_NUM)) {
                 try {
-                    Message imageMessage = new PictureMessage(TarotController.getCardImageUrl(imageSecurePictorialLink, cardNum), joiner.toString(), null);
-                    response.send(imageMessage);
+                    cardNum = Integer.parseInt(textMessage.getText().substring(DEBUG_GET_NUM.length()).trim());
+                    debugValue = true;
                 } catch (Exception ex) {
-                    response.send(joiner.toString());
-                    log.info(ex.getMessage());
+                    log.info("Exception: {}", ex.getMessage());
                 }
+            }
+            if (cardNum < 0 || cardNum >= CARDS_COUNT) {
+                cardNum = random.nextInt(CARDS_COUNT);
+            }
+
+            log.info("user '{}' cardNum: '{}'", userProfile.getName(), cardNum);
+
+            joiner.add(TarotController.getCardDescription(cardNum, debugValue));
+
+            try {
+                Message imageMessage = new PictureMessage(TarotController.getCardImageUrl(imageSecurePictorialLink, cardNum), joiner.toString(), null);
+                response.send(imageMessage);
+            } catch (Exception ex) {
+                response.send(joiner.toString());
+                log.info(ex.getMessage());
             }
         }));
     }
