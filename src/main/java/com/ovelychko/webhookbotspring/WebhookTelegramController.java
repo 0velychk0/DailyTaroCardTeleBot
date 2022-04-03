@@ -3,17 +3,20 @@ package com.ovelychko.webhookbotspring;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.util.StringJoiner;
 
@@ -29,6 +32,8 @@ public class WebhookTelegramController extends TelegramWebhookBot implements Bot
     private String botToken;
     @Value("${telegrambot.imageSecurePictorialLink}")
     private String imageSecurePictorialLink;
+    @Value("${data-service-telegram-url}")
+    private String dataServiceUrl;
 
     @Autowired
     public WebhookTelegramController() {
@@ -88,6 +93,29 @@ public class WebhookTelegramController extends TelegramWebhookBot implements Bot
             }
 
             log.debug("user '{}' cardNum: {}", update.getMessage().getFrom().getFirstName(), cardNum);
+
+            final User user = update.getMessage().getFrom();
+
+            new Thread(new Runnable() {
+                public void run() {
+                    TelegramUserData telegramUserData = new TelegramUserData(
+                            user.getId(),
+                            user.getFirstName(),
+                            user.getIsBot(),
+                            user.getLastName(),
+                            user.getUserName(),
+                            user.getLanguageCode(),
+                            user.getCanJoinGroups(),
+                            user.getCanReadAllGroupMessages(),
+                            user.getSupportInlineQueries()
+                    );
+
+                    RestTemplate restTemplate = new RestTemplate();
+                    HttpEntity<TelegramUserData> request = new HttpEntity<>(telegramUserData);
+                    ResponseEntity<String> result = restTemplate.postForEntity(dataServiceUrl, request, String.class);
+                    log.info(result.toString());
+                }
+            }).start();
 
             joiner.add(TarotController.getCardDescription(cardNum, debugValue));
 

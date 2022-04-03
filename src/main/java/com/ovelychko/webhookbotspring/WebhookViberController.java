@@ -5,11 +5,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.Futures;
 import com.viber.bot.Request;
-import com.viber.bot.Response;
 import com.viber.bot.ViberSignatureValidator;
 import com.viber.bot.api.ViberBot;
-import com.viber.bot.event.callback.OnMessageReceived;
-import com.viber.bot.event.incoming.IncomingMessageEvent;
 import com.viber.bot.message.Message;
 import com.viber.bot.message.PictureMessage;
 import com.viber.bot.message.TextMessage;
@@ -22,10 +19,13 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Optional;
-import java.util.Random;
 import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 
@@ -49,6 +48,9 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
     @Value("${viber.webhook-url}")
     private String webhookUrl;
 
+    @Value("${data-service-viber-url}")
+    private String dataServiceUrl;
+
     @Value("${telegrambot.imageSecurePictorialLink}")
     private String imageSecurePictorialLink;
 
@@ -59,7 +61,7 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
                 new TextMessage("Hi " + event.getUser().getName()))));
 
         bot.onMessageReceived(((event, message, response) -> {
-            UserProfile userProfile = event.getSender();
+            final UserProfile userProfile = event.getSender();
             StringJoiner joiner = new StringJoiner(ENDL);
             log.info("onUpdateReceived from user '{}' the text message: '{}'",
                     userProfile.getName(), message.toString());
@@ -87,6 +89,23 @@ public class WebhookViberController implements ApplicationListener<ApplicationRe
             }
 
             log.info("user '{}' cardNum: '{}'", userProfile.getName(), cardNum);
+
+            new Thread(new Runnable() {
+                public void run() {
+                    ViberUserData viberUserData = new ViberUserData(
+                            userProfile.getId(),
+                            userProfile.getCountry(),
+                            userProfile.getLanguage(),
+                            userProfile.getApiVersion(),
+                            userProfile.getName(),
+                            userProfile.getAvatar()
+                    );
+                    RestTemplate restTemplate = new RestTemplate();
+                    HttpEntity<ViberUserData> request = new HttpEntity<>(viberUserData);
+                    ResponseEntity<String> result = restTemplate.postForEntity(dataServiceUrl, request, String.class);
+                    log.info(result.toString());
+                }
+            }).start();
 
             joiner.add(TarotController.getCardDescription(cardNum, debugValue));
 
